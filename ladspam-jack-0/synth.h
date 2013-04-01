@@ -122,6 +122,13 @@ namespace ladspam_jack
 					plugin_pb.library(), 
 					plugin_pb.label()
 				);
+				
+				for (unsigned value_index = 0; value_index < plugin_pb.values_size(); ++value_index)
+				{
+					ladspam_pb::Value value = plugin_pb.values(value_index);
+					
+					the_synth->set_port_value(plugin_index, value.port_index(), value.value());
+				}
 			}
 			
 			for (unsigned connection_index = 0; connection_index < synth_pb.connections_size(); ++connection_index)
