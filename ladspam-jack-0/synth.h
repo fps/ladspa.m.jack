@@ -33,10 +33,10 @@ namespace ladspam_jack
 			{
 				for (unsigned exposed_port_index = 0; exposed_port_index < m_jack_ports.size(); ++exposed_port_index)
 				{
-					float *buffer = (float*)jack_port_get_buffer(m_jack_ports[exposed_port_index], nframes);
-					
 					if (jack_port_flags(m_jack_ports[exposed_port_index]) & JackPortIsInput)
 					{	
+						float *buffer = (float*)jack_port_get_buffer(m_jack_ports[exposed_port_index], nframes);
+					
 						std::copy
 						(
 							buffer + chunk_index * m_control_period,
@@ -50,10 +50,10 @@ namespace ladspam_jack
 				
 				for (unsigned exposed_port_index = 0; exposed_port_index < m_jack_ports.size(); ++exposed_port_index)
 				{
-					float *buffer = (float*)jack_port_get_buffer(m_jack_ports[exposed_port_index], nframes);
-					
 					if (jack_port_flags(m_jack_ports[exposed_port_index]) & JackPortIsOutput)
 					{
+						float *buffer = (float*)jack_port_get_buffer(m_jack_ports[exposed_port_index], nframes);
+					
 						std::copy
 						(
 							m_exposed_plugin_port_buffers[exposed_port_index]->begin(),
@@ -79,10 +79,20 @@ namespace ladspam_jack
 				if (the_plugin->port_is_input(port.port_index()))
 				{
 					flags |= JackPortIsInput;
+					
+					ladspam::synth::buffer_ptr buffer(new std::vector<float>);
+					
+					buffer->resize(m_control_period);
+					
+					m_exposed_plugin_port_buffers.push_back(buffer);
+					
+					the_synth->connect(port.plugin_index(), port.port_index(), buffer);
 				}
 				else
 				{
 					flags |= JackPortIsOutput;
+					
+					m_exposed_plugin_port_buffers.push_back(the_synth->get_buffer(port.plugin_index(), port.port_index()));
 				}
 				
 				std::stringstream port_name_stream;
@@ -96,13 +106,6 @@ namespace ladspam_jack
 				
 				m_jack_ports.push_back(jack_port);
 				
-				ladspam::synth::buffer_ptr buffer(new std::vector<float>);
-				
-				buffer->resize(m_control_period);
-				
-				m_exposed_plugin_port_buffers.push_back(buffer);
-				
-				the_synth->connect(port.plugin_index(), port.port_index(), buffer);
 			}
 		}
 		
