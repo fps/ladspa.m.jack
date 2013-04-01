@@ -64,17 +64,21 @@ namespace ladspam_jack
 			
 			unsigned chunk_index = 0;
 			
+			void *midi_in_buffer = jack_port_get_buffer(m_midi_in_jack_port, nframes);
+			
+			jack_nframes_t event_count = jack_midi_get_event_count(midi_in_buffer);
+			jack_nframes_t event_index = 0;
+			
+			unsigned sample_rate = jack_get_sample_rate(m_jack_client);
+			
+			unsigned last_frame_time = jack_last_frame_time(m_jack_client);
+			
 			for (unsigned frame_index = 0; frame_index < nframes; ++frame_index)
 			{
 				unsigned frame_in_chunk = frame_index % m_control_period;
 				
-				void *midi_in_buffer = jack_port_get_buffer(m_midi_in_jack_port, nframes);
-				
 				jack_midi_event_t midi_in_event;
 
-				jack_nframes_t event_count = jack_midi_get_event_count(midi_in_buffer);
-				jack_nframes_t event_index = 0;
-				
 				if (event_count > 0) 
 				{
 					jack_midi_event_get(&midi_in_event, midi_in_buffer, event_index);
@@ -103,7 +107,7 @@ namespace ladspam_jack
 
 						m_voices[oldest_voice_index]->m_note = note;
 						m_voices[oldest_voice_index]->m_gate = 1.0;
-						m_voices[oldest_voice_index]->m_start_frame = jack_last_frame_time(m_jack_client) + frame_index;
+						m_voices[oldest_voice_index]->m_start_frame = last_frame_time + frame_index;
 						m_voices[oldest_voice_index]->m_on_velocity = velocity;
 						
 						ladspam::synth::buffer &buffer = *m_voices[oldest_voice_index]->m_port_buffers[0];
@@ -151,7 +155,7 @@ namespace ladspam_jack
 					
 					{
 						ladspam::synth::buffer &buffer = *m_voices[voice_index]->m_port_buffers[4];
-						buffer[frame_in_chunk] = note_frequency(m_voices[voice_index]->m_note) / (float)jack_get_sample_rate(m_jack_client);
+						buffer[frame_in_chunk] = note_frequency(m_voices[voice_index]->m_note) / (float)sample_rate;
 					}
 				}
 				

@@ -46,7 +46,6 @@ namespace ladspam_jack
 			throw std::runtime_error("Failed to set jack process callback");
 		}
 	
-		
 		jack_activate(m_jack_client);
 	}
 }
