@@ -52,6 +52,12 @@ namespace ladspam_jack
 			activate();
 		}
 		
+		~instrument()
+		{
+			jack_deactivate(m_jack_client);
+			jack_client_close(m_jack_client);
+		}
+		
 		virtual int process(jack_nframes_t nframes)
 		{
 			unsigned number_of_chunks = nframes/m_control_period;
@@ -62,14 +68,6 @@ namespace ladspam_jack
 			
 			for (unsigned frame_index = 0; frame_index < nframes; ++frame_index)
 			{
-				// Reset all trigger ports to 0. The rest will be set anyways later..
-				for (unsigned voice_index = 0; voice_index < m_voices.size(); ++voice_index)
-				{
-					ladspam::synth::buffer_ptr buffer = m_voices[voice_index]->m_port_buffers[0];
-					
-					std::fill(buffer->begin(), buffer->end(), 0);
-				}
-
 				void *midi_in_buffer = jack_port_get_buffer(m_midi_in_jack_port, nframes);
 				
 				jack_midi_event_t midi_in_event;
@@ -88,6 +86,10 @@ namespace ladspam_jack
 					{
 						//cout << "event" << endl;
 						
+						ladspam::synth::buffer &buffer = *m_voices[oldest_voice(frame_index)]->m_port_buffers[0];
+						
+						buffer[frame_index % m_control_period] = 0.0;
+						
 						if( ((*(midi_in_event.buffer) & 0xf0)) == 0x90 ) 	
 						{
 							/** note on */
@@ -101,8 +103,6 @@ namespace ladspam_jack
 							m_voices[oldest_voice_index]->m_gate = 1.0;
 							m_voices[oldest_voice_index]->m_start_frame = jack_last_frame_time(m_jack_client) + frame;
 							m_voices[oldest_voice_index]->m_on_velocity = velocity;
-							
-							ladspam::synth::buffer &buffer = *m_voices[oldest_voice(frame_index)]->m_port_buffers[0];
 							
 							buffer[frame_index % m_control_period] = 1.0;
 						}

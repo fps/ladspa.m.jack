@@ -22,8 +22,11 @@ namespace ladspam_jack
 		
 		~synth()
 		{
-			jack_deactivate(m_jack_client);
-			jack_client_close(m_jack_client);
+			if (true == m_activate_instance)
+			{
+				jack_deactivate(m_jack_client);
+				jack_client_close(m_jack_client);
+			}
 		}
 		
 		void activate();
@@ -156,6 +159,8 @@ namespace ladspam_jack
 				
 				return the_synth;
 			}
+		
+			bool m_activate_instance;
 		
 			ladspam::synth_ptr m_synth;
 			

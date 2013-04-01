@@ -17,6 +17,7 @@ namespace ladspam_jack
 		unsigned int control_period,
 		bool activate_instance
 	) :
+		m_activate_instance(activate_instance),
 		m_control_period(control_period),
 		m_jack_client(jack_client_open(jack_client_name.c_str(), JackUseExactName, 0))
 	{
