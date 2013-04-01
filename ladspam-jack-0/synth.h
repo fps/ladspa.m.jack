@@ -16,7 +16,8 @@ namespace ladspam_jack
 		(
 			const std::string &jack_client_name, 
 			const ladspam_pb::Synth &synth_pb,
-			unsigned control_period
+			unsigned control_period,
+			bool activate_instance = true
 		);
 		
 		~synth()
@@ -25,43 +26,50 @@ namespace ladspam_jack
 			jack_client_close(m_jack_client);
 		}
 		
-		int process(jack_nframes_t nframes)
+		void activate();
+		
+		virtual void process_chunk(jack_nframes_t nframes, unsigned chunk_index)
+		{
+			for (unsigned exposed_port_index = 0; exposed_port_index < m_jack_ports.size(); ++exposed_port_index)
+			{
+				if (jack_port_flags(m_jack_ports[exposed_port_index]) & JackPortIsInput)
+				{	
+					float *buffer = (float*)jack_port_get_buffer(m_jack_ports[exposed_port_index], nframes);
+				
+					std::copy
+					(
+						buffer + chunk_index * m_control_period,
+						buffer + (chunk_index + 1) * m_control_period,
+						m_exposed_plugin_port_buffers[exposed_port_index]->begin()
+					);
+				}
+			}
+			
+			m_synth->process();
+			
+			for (unsigned exposed_port_index = 0; exposed_port_index < m_jack_ports.size(); ++exposed_port_index)
+			{
+				if (jack_port_flags(m_jack_ports[exposed_port_index]) & JackPortIsOutput)
+				{
+					float *buffer = (float*)jack_port_get_buffer(m_jack_ports[exposed_port_index], nframes);
+				
+					std::copy
+					(
+						m_exposed_plugin_port_buffers[exposed_port_index]->begin(),
+						m_exposed_plugin_port_buffers[exposed_port_index]->end(),
+						buffer + chunk_index * m_control_period
+					);
+				}
+			}
+		}
+		
+		virtual int process(jack_nframes_t nframes)
 		{
 			unsigned number_of_chunks = nframes/m_control_period;
 			
 			for (unsigned chunk_index = 0; chunk_index < number_of_chunks; ++chunk_index)
 			{
-				for (unsigned exposed_port_index = 0; exposed_port_index < m_jack_ports.size(); ++exposed_port_index)
-				{
-					if (jack_port_flags(m_jack_ports[exposed_port_index]) & JackPortIsInput)
-					{	
-						float *buffer = (float*)jack_port_get_buffer(m_jack_ports[exposed_port_index], nframes);
-					
-						std::copy
-						(
-							buffer + chunk_index * m_control_period,
-							buffer + (chunk_index + 1) * m_control_period,
-							m_exposed_plugin_port_buffers[exposed_port_index]->begin()
-						);
-					}
-				}
-				
-				m_synth->process();
-				
-				for (unsigned exposed_port_index = 0; exposed_port_index < m_jack_ports.size(); ++exposed_port_index)
-				{
-					if (jack_port_flags(m_jack_ports[exposed_port_index]) & JackPortIsOutput)
-					{
-						float *buffer = (float*)jack_port_get_buffer(m_jack_ports[exposed_port_index], nframes);
-					
-						std::copy
-						(
-							m_exposed_plugin_port_buffers[exposed_port_index]->begin(),
-							m_exposed_plugin_port_buffers[exposed_port_index]->end(),
-							buffer + chunk_index * m_control_period
-						);
-					}
-				}
+				process_chunk(nframes, chunk_index);
 			}
 			
 			return 0;
