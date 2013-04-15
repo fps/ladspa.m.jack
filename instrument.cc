@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 	
-	ladspam_jack::instrument instrument("synth", instrument_pb, 8);
+	ladspam_jack::instrument instrument("synth", instrument_pb, 32);
 	
 	std::string line;
 	std::cin >> line;
