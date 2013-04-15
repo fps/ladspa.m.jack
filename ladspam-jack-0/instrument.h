@@ -84,10 +84,15 @@ namespace ladspam_jack
 					jack_midi_event_get(&midi_in_event, midi_in_buffer, event_index);
 				}
 				
-				for (unsigned voice_index = 0; voice_index < m_voices.size(); ++voice_index)
+				for 
+				(
+					unsigned voice_index = 0, voice_index_max = m_voices.size(); 
+					voice_index < voice_index_max; 
+					++voice_index
+				)
 				{
 					{
-						ladspam::synth::buffer &buffer = *m_voices[voice_index].m_port_buffers[0];
+						ladspam::synth::buffer &buffer = *m_voices[voice_index].m_port_buffers_raw[0];
 						buffer[frame_in_chunk] = 0.0;
 					}
 				}
@@ -106,11 +111,12 @@ namespace ladspam_jack
 						int oldest_voice_index = oldest_voice(frame_index);
 
 						m_voices[oldest_voice_index].m_note = note;
+						m_voices[oldest_voice_index].m_note_frequency = note_frequency(note);
 						m_voices[oldest_voice_index].m_gate = 1.0;
 						m_voices[oldest_voice_index].m_start_frame = last_frame_time + frame_index;
 						m_voices[oldest_voice_index].m_on_velocity = velocity;
 						
-						ladspam::synth::buffer &buffer = *m_voices[oldest_voice_index].m_port_buffers[0];
+						ladspam::synth::buffer &buffer = *m_voices[oldest_voice_index].m_port_buffers_raw[0];
 
 						buffer[frame_in_chunk] = 1.0;
 					}
@@ -136,26 +142,33 @@ namespace ladspam_jack
 					jack_midi_event_get(&midi_in_event, midi_in_buffer, event_index);
 				}
 
-				for (unsigned voice_index = 0; voice_index < m_voices.size(); ++voice_index)
+				for 
+				(
+					unsigned voice_index = 0, voice_index_max = m_voices.size(); 
+					voice_index < voice_index_max; 
+					++voice_index
+				)
 				{
+					voice &the_voice = m_voices[voice_index];
+					
 					{
-						ladspam::synth::buffer &buffer = *m_voices[voice_index].m_port_buffers[1];
-						buffer[frame_in_chunk] = m_voices[voice_index].m_gate;
+						ladspam::synth::buffer &buffer = *the_voice.m_port_buffers_raw[1];
+						buffer[frame_in_chunk] = the_voice.m_gate;
 					}
 					
 					{
-						ladspam::synth::buffer &buffer = *m_voices[voice_index].m_port_buffers[2];
-						buffer[frame_in_chunk] =  m_voices[voice_index].m_on_velocity / 128.0;
+						ladspam::synth::buffer &buffer = *the_voice.m_port_buffers_raw[2];
+						buffer[frame_in_chunk] =  the_voice.m_on_velocity / 128.0;
 					}
 					
 					{
-						ladspam::synth::buffer &buffer = *m_voices[voice_index].m_port_buffers[3];
-						buffer[frame_in_chunk] =  note_frequency(m_voices[voice_index].m_note);
+						ladspam::synth::buffer &buffer = *the_voice.m_port_buffers_raw[3];
+						buffer[frame_in_chunk] =  the_voice.m_note_frequency;
 					}
 					
 					{
-						ladspam::synth::buffer &buffer = *m_voices[voice_index].m_port_buffers[4];
-						buffer[frame_in_chunk] = note_frequency(m_voices[voice_index].m_note) / (float)sample_rate;
+						ladspam::synth::buffer &buffer = *the_voice.m_port_buffers_raw[4];
+						buffer[frame_in_chunk] = the_voice.m_note_frequency / (float)sample_rate;
 					}
 				}
 				
@@ -214,44 +227,52 @@ namespace ladspam_jack
 				unsigned m_note;
 				unsigned m_on_velocity;
 				unsigned m_off_velocity;
+				float m_note_frequency;
 				jack_nframes_t m_start_frame;
 				std::vector<ladspam::synth::buffer_ptr> m_port_buffers;
+				std::vector<ladspam::synth::buffer *> m_port_buffers_raw;
 				
 				voice(unsigned control_period) :
 					m_gate(0.0),
 					m_note(0),
 					m_on_velocity(0),
 					m_off_velocity(0),
+					m_note_frequency(0),
 					m_start_frame(0)
 				{
 					{
 						ladspam::synth::buffer_ptr buffer(new std::vector<float>());
 						buffer->resize(control_period);
 						m_port_buffers.push_back(buffer);
+						m_port_buffers_raw.push_back(buffer.get());
 					}
 
 					{
 						ladspam::synth::buffer_ptr buffer(new std::vector<float>());
 						buffer->resize(control_period);
 						m_port_buffers.push_back(buffer);
+						m_port_buffers_raw.push_back(buffer.get());
 					}
 
 					{
 						ladspam::synth::buffer_ptr buffer(new std::vector<float>());
 						buffer->resize(control_period);
 						m_port_buffers.push_back(buffer);
+						m_port_buffers_raw.push_back(buffer.get());
 					}
 
 					{
 						ladspam::synth::buffer_ptr buffer(new std::vector<float>());
 						buffer->resize(control_period);
 						m_port_buffers.push_back(buffer);
+						m_port_buffers_raw.push_back(buffer.get());
 					}
 
 					{
 						ladspam::synth::buffer_ptr buffer(new std::vector<float>());
 						buffer->resize(control_period);
 						m_port_buffers.push_back(buffer);
+						m_port_buffers_raw.push_back(buffer.get());
 					}
 				}
 			};
