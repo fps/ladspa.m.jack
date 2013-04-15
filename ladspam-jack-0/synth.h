@@ -48,7 +48,7 @@ namespace ladspam_jack
 				}
 			}
 			
-			m_synth->process();
+			m_synth->process(m_control_period);
 			
 			for (unsigned exposed_port_index = 0; exposed_port_index < m_jack_ports.size(); ++exposed_port_index)
 			{
