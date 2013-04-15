@@ -34,7 +34,7 @@ namespace ladspam_jack
 			
 			for (unsigned voice_index = 0; voice_index < instrument_pb.number_of_voices(); ++voice_index)
 			{
-				m_voices.push_back(voice_ptr(new voice(control_period)));
+				m_voices.push_back(voice(control_period));
 			}
 			
 			for (unsigned connection_index = 0; connection_index < instrument_pb.connections_size(); ++connection_index)
@@ -45,7 +45,7 @@ namespace ladspam_jack
 				(
 					connection.sink_index(),
 					connection.sink_port_index(),
-					m_voices[connection.source_index()]->m_port_buffers[connection.source_port_index()]
+					m_voices[connection.source_index()].m_port_buffers[connection.source_port_index()]
 				);
 			}
 			
@@ -87,7 +87,7 @@ namespace ladspam_jack
 				for (unsigned voice_index = 0; voice_index < m_voices.size(); ++voice_index)
 				{
 					{
-						ladspam::synth::buffer &buffer = *m_voices[voice_index]->m_port_buffers[0];
+						ladspam::synth::buffer &buffer = *m_voices[voice_index].m_port_buffers[0];
 						buffer[frame_in_chunk] = 0.0;
 					}
 				}
@@ -105,12 +105,12 @@ namespace ladspam_jack
 						
 						int oldest_voice_index = oldest_voice(frame_index);
 
-						m_voices[oldest_voice_index]->m_note = note;
-						m_voices[oldest_voice_index]->m_gate = 1.0;
-						m_voices[oldest_voice_index]->m_start_frame = last_frame_time + frame_index;
-						m_voices[oldest_voice_index]->m_on_velocity = velocity;
+						m_voices[oldest_voice_index].m_note = note;
+						m_voices[oldest_voice_index].m_gate = 1.0;
+						m_voices[oldest_voice_index].m_start_frame = last_frame_time + frame_index;
+						m_voices[oldest_voice_index].m_on_velocity = velocity;
 						
-						ladspam::synth::buffer &buffer = *m_voices[oldest_voice_index]->m_port_buffers[0];
+						ladspam::synth::buffer &buffer = *m_voices[oldest_voice_index].m_port_buffers[0];
 
 						buffer[frame_in_chunk] = 1.0;
 					}
@@ -125,7 +125,7 @@ namespace ladspam_jack
 						
 						if (-1 != voice_index)
 						{
-							m_voices[voice_index]->m_gate = 0;
+							m_voices[voice_index].m_gate = 0;
 						}
 					}
 					
@@ -139,23 +139,23 @@ namespace ladspam_jack
 				for (unsigned voice_index = 0; voice_index < m_voices.size(); ++voice_index)
 				{
 					{
-						ladspam::synth::buffer &buffer = *m_voices[voice_index]->m_port_buffers[1];
-						buffer[frame_in_chunk] = m_voices[voice_index]->m_gate;
+						ladspam::synth::buffer &buffer = *m_voices[voice_index].m_port_buffers[1];
+						buffer[frame_in_chunk] = m_voices[voice_index].m_gate;
 					}
 					
 					{
-						ladspam::synth::buffer &buffer = *m_voices[voice_index]->m_port_buffers[2];
-						buffer[frame_in_chunk] =  m_voices[voice_index]->m_on_velocity / 128.0;
+						ladspam::synth::buffer &buffer = *m_voices[voice_index].m_port_buffers[2];
+						buffer[frame_in_chunk] =  m_voices[voice_index].m_on_velocity / 128.0;
 					}
 					
 					{
-						ladspam::synth::buffer &buffer = *m_voices[voice_index]->m_port_buffers[3];
-						buffer[frame_in_chunk] =  note_frequency(m_voices[voice_index]->m_note);
+						ladspam::synth::buffer &buffer = *m_voices[voice_index].m_port_buffers[3];
+						buffer[frame_in_chunk] =  note_frequency(m_voices[voice_index].m_note);
 					}
 					
 					{
-						ladspam::synth::buffer &buffer = *m_voices[voice_index]->m_port_buffers[4];
-						buffer[frame_in_chunk] = note_frequency(m_voices[voice_index]->m_note) / (float)sample_rate;
+						ladspam::synth::buffer &buffer = *m_voices[voice_index].m_port_buffers[4];
+						buffer[frame_in_chunk] = note_frequency(m_voices[voice_index].m_note) / (float)sample_rate;
 					}
 				}
 				
@@ -171,19 +171,19 @@ namespace ladspam_jack
 		}
 		
 		protected:
-			float note_frequency(unsigned int note) 
+			inline float note_frequency(unsigned int note) 
 			{
 				return (2.0 * 440.0 / 32.0) * pow(2, (((jack_default_audio_sample_t)note - 9.0) / 12.0));
 			}
 
-			unsigned oldest_voice(unsigned frame)
+			inline unsigned oldest_voice(unsigned frame)
 			{
-				jack_nframes_t minimum_age = frame + jack_last_frame_time(m_jack_client) - m_voices[0]->m_start_frame;
+				jack_nframes_t minimum_age = frame + jack_last_frame_time(m_jack_client) - m_voices[0].m_start_frame;
 				unsigned oldest_index = 0;
 				
 				for (unsigned voice_index = 1; voice_index < m_voices.size(); ++voice_index)
 				{
-					jack_nframes_t age = frame + jack_last_frame_time(m_jack_client) - m_voices[voice_index]->m_start_frame;
+					jack_nframes_t age = frame + jack_last_frame_time(m_jack_client) - m_voices[voice_index].m_start_frame;
 					if (age > minimum_age)
 					{
 						oldest_index = voice_index;
@@ -194,11 +194,11 @@ namespace ladspam_jack
 				return oldest_index;
 			}
 			
-			int voice_playing_note(unsigned note)
+			inline int voice_playing_note(unsigned note)
 			{
 				for (unsigned voice_index = 0; voice_index < m_voices.size(); ++voice_index)
 				{
-					if (m_voices[voice_index]->m_note == note && m_voices[voice_index]->m_gate > 0)
+					if (m_voices[voice_index].m_note == note && m_voices[voice_index].m_gate > 0)
 					{
 						return voice_index;
 					}
@@ -256,9 +256,7 @@ namespace ladspam_jack
 				}
 			};
 			
-			typedef boost::shared_ptr<voice> voice_ptr;
-
-			std::vector<voice_ptr> m_voices;
+			std::vector<voice> m_voices;
 			
 			jack_port_t *m_midi_in_jack_port;
 	};
