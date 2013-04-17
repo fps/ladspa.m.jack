@@ -130,7 +130,7 @@ namespace ladspam_jack
 					
 					the_synth->append_plugin
 					(
-						plugin_pb.library(), 
+						the_synth->find_plugin_library(plugin_pb.label()), 
 						plugin_pb.label()
 					);
 					
