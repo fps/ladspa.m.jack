@@ -31,15 +31,20 @@ namespace ladspam_jack
 				JackPortIsInput, 
 				0
 			);
+
+			if (m_midi_in_jack_port == 0)
+			{
+				throw std::runtime_error("failed to create midi port");
+			}
 			
 			for (unsigned voice_index = 0; voice_index < instrument_pb.number_of_voices(); ++voice_index)
 			{
 				m_voices.push_back(voice(control_period));
 			}
 			
-			for (unsigned connection_index = 0; connection_index < instrument_pb.connections_size(); ++connection_index)
+			for (unsigned connection_index = 0; connection_index < instrument_pb.voice_connections_size(); ++connection_index)
 			{
-				ladspam_pb::Connection connection = instrument_pb.connections(connection_index);
+				ladspam_pb::Connection connection = instrument_pb.voice_connections(connection_index);
 				
 				m_synth->connect
 				(

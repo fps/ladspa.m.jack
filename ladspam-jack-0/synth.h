@@ -47,7 +47,7 @@ namespace ladspam_jack
 					);
 				}
 			}
-			
+
 			m_synth->process(m_control_period);
 			
 			for (unsigned exposed_port_index = 0; exposed_port_index < m_jack_ports.size(); ++exposed_port_index)
@@ -109,14 +109,21 @@ namespace ladspam_jack
 					std::stringstream port_name_stream;
 					port_name_stream 
 						<< port.plugin_index() 
-						<< "-" << port.port_index() 
+						<< "-" << port.port_index();
+
+					std::cout << "registering port: " << port_name_stream.str() << std::endl;
+#if 0
 						<< "-" << the_plugin->label()
 						<< "-" << the_plugin->port_name(port.port_index());
-						
+#endif					
 					jack_port_t *jack_port = jack_port_register(m_jack_client, port_name_stream.str().c_str(), JACK_DEFAULT_AUDIO_TYPE, flags, 0);
+
+					if (jack_port == 0)
+					{
+						throw std::runtime_error("failed to create audio port");
+					}
 					
 					m_jack_ports.push_back(jack_port);
-					
 				}
 			}
 			
