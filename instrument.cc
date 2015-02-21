@@ -32,6 +32,7 @@ int main(int argc, char *argv[])
 	
 	ladspam_jack::instrument instrument("synth", instrument_pb, 32);
 	
+	std::cout << "type anything and press enter to quit..." << std::endl;
 	std::string line;
 	std::cin >> line;
 }
