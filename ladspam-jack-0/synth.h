@@ -3,7 +3,7 @@
 
 #include <sstream>
 
-#include <ladspam-0/synth.h>
+#include <ladspa.m-1/synth.h>
 #include <ladspam.pb.h>
 
 #include <jack/jack.h>
@@ -78,20 +78,20 @@ namespace ladspam_jack
 			return 0;
 		}
 		protected:
-			void expose_ports(const ladspam_pb::Synth &synth_pb, ladspam::synth_ptr the_synth)
+			void expose_ports(const ladspam_pb::Synth &synth_pb, ladspam1::synth_ptr the_synth)
 			{
 				for (unsigned port_index = 0; port_index < synth_pb.exposed_ports_size(); ++port_index)
 				{
 					ladspam_pb::Port port = synth_pb.exposed_ports(port_index);
 					
-					ladspamm::plugin_ptr the_plugin = the_synth->get_plugin(port.plugin_index())->the_plugin;
+					ladspamm1::plugin_ptr the_plugin = the_synth->get_plugin(port.plugin_index())->the_plugin;
 					
 					unsigned long flags = 0;
 					if (the_plugin->port_is_input(port.port_index()))
 					{
 						flags |= JackPortIsInput;
 						
-						ladspam::synth::buffer_ptr buffer(new std::vector<float>);
+						ladspam1::synth::buffer_ptr buffer(new std::vector<float>);
 						
 						buffer->resize(m_control_period);
 						
@@ -127,9 +127,9 @@ namespace ladspam_jack
 				}
 			}
 			
-			ladspam::synth_ptr build_synth(const ladspam_pb::Synth& synth_pb, unsigned sample_rate, unsigned control_period)
+			ladspam1::synth_ptr build_synth(const ladspam_pb::Synth& synth_pb, unsigned sample_rate, unsigned control_period)
 			{
-				ladspam::synth_ptr the_synth(new ladspam::synth(sample_rate, control_period));
+				ladspam1::synth_ptr the_synth(new ladspam1::synth(sample_rate, control_period));
 				
 				for (unsigned plugin_index = 0; plugin_index < synth_pb.plugins_size(); ++plugin_index)
 				{
@@ -169,14 +169,14 @@ namespace ladspam_jack
 		
 			bool m_activate_instance;
 		
-			ladspam::synth_ptr m_synth;
+			ladspam1::synth_ptr m_synth;
 			
 			unsigned m_control_period;
 			
 			jack_client_t *m_jack_client;
 			
 			std::vector<jack_port_t *> m_jack_ports;
-			std::vector<ladspam::synth::buffer_ptr> m_exposed_plugin_port_buffers; 
+			std::vector<ladspam1::synth::buffer_ptr> m_exposed_plugin_port_buffers; 
 	};
 }
 
