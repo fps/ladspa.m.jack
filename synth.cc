@@ -1,5 +1,5 @@
 #include <ladspam-jack-0/synth.h>
-#include <ladspam.pb.h>
+#include <ladspam1.pb.h>
 
 #include <iostream>
 #include <fstream>
@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 	
-	ladspam_pb::Synth synth_pb;
+	ladspam_proto1::Synth synth_pb;
 	std::ifstream input_file(argv[1], std::ios::in | std::ios::binary);
 	
 	if (false == input_file.good())

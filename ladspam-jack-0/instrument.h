@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include <ladspa.m-1/synth.h>
-#include <ladspam.pb.h>
+#include <ladspam1.pb.h>
 
 #include <jack/jack.h>
 #include <jack/midiport.h>
@@ -18,7 +18,7 @@ namespace ladspam_jack
 		instrument
 		(
 			const std::string& jack_client_name, 
-			const ladspam_pb::Instrument& instrument_pb, 
+			const ladspam_proto1::Instrument& instrument_pb, 
 			unsigned int control_period
 		) :
 			ladspam_jack::synth(jack_client_name, instrument_pb.synth(), control_period, false)
@@ -44,7 +44,7 @@ namespace ladspam_jack
 			
 			for (unsigned connection_index = 0; connection_index < instrument_pb.voice_connections_size(); ++connection_index)
 			{
-				ladspam_pb::Connection connection = instrument_pb.voice_connections(connection_index);
+				ladspam_proto1::Connection connection = instrument_pb.voice_connections(connection_index);
 				
 				m_synth->connect
 				(

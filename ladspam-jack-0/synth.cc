@@ -13,7 +13,7 @@ namespace ladspam_jack
 	synth::synth
 	(
 		const std::string& jack_client_name, 
-		const ladspam_pb::Synth& synth_pb, 
+		const ladspam_proto1::Synth& synth_pb, 
 		unsigned int control_period,
 		bool activate_instance
 	) :

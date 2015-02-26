@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include <ladspa.m-1/synth.h>
-#include <ladspam.pb.h>
+#include <ladspam1.pb.h>
 
 #include <jack/jack.h>
 
@@ -15,7 +15,7 @@ namespace ladspam_jack
 		synth
 		(
 			const std::string &jack_client_name, 
-			const ladspam_pb::Synth &synth_pb,
+			const ladspam_proto1::Synth &synth_pb,
 			unsigned control_period,
 			bool activate_instance = true
 		);
@@ -78,11 +78,11 @@ namespace ladspam_jack
 			return 0;
 		}
 		protected:
-			void expose_ports(const ladspam_pb::Synth &synth_pb, ladspam1::synth_ptr the_synth)
+			void expose_ports(const ladspam_proto1::Synth &synth_pb, ladspam1::synth_ptr the_synth)
 			{
 				for (unsigned port_index = 0; port_index < synth_pb.exposed_ports_size(); ++port_index)
 				{
-					ladspam_pb::Port port = synth_pb.exposed_ports(port_index);
+					ladspam_proto1::Port port = synth_pb.exposed_ports(port_index);
 					
 					ladspamm1::plugin_ptr the_plugin = the_synth->get_plugin(port.plugin_index())->the_plugin;
 					
@@ -127,13 +127,13 @@ namespace ladspam_jack
 				}
 			}
 			
-			ladspam1::synth_ptr build_synth(const ladspam_pb::Synth& synth_pb, unsigned sample_rate, unsigned control_period)
+			ladspam1::synth_ptr build_synth(const ladspam_proto1::Synth& synth_pb, unsigned sample_rate, unsigned control_period)
 			{
 				ladspam1::synth_ptr the_synth(new ladspam1::synth(sample_rate, control_period));
 				
 				for (unsigned plugin_index = 0; plugin_index < synth_pb.plugins_size(); ++plugin_index)
 				{
-					ladspam_pb::Plugin plugin_pb = synth_pb.plugins(plugin_index);
+					ladspam_proto1::Plugin plugin_pb = synth_pb.plugins(plugin_index);
 					
 					the_synth->append_plugin
 					(
@@ -143,7 +143,7 @@ namespace ladspam_jack
 					
 					for (unsigned value_index = 0; value_index < plugin_pb.values_size(); ++value_index)
 					{
-						ladspam_pb::Value value = plugin_pb.values(value_index);
+						ladspam_proto1::Value value = plugin_pb.values(value_index);
 						
 						the_synth->set_port_value(plugin_index, value.port_index(), value.value());
 					}
@@ -151,7 +151,7 @@ namespace ladspam_jack
 				
 				for (unsigned connection_index = 0; connection_index < synth_pb.connections_size(); ++connection_index)
 				{
-					ladspam_pb::Connection connection_pb = synth_pb.connections(connection_index);
+					ladspam_proto1::Connection connection_pb = synth_pb.connections(connection_index);
 					
 					the_synth->connect
 					(
