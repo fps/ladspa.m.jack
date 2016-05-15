@@ -37,12 +37,12 @@ namespace ladspam_jack
 				throw std::runtime_error("failed to create midi port");
 			}
 			
-			for (unsigned voice_index = 0; voice_index < instrument_pb.number_of_voices(); ++voice_index)
+			for (int voice_index = 0; voice_index < instrument_pb.number_of_voices(); ++voice_index)
 			{
 				m_voices.push_back(voice(control_period));
 			}
 			
-			for (unsigned connection_index = 0; connection_index < instrument_pb.voice_connections_size(); ++connection_index)
+			for (int connection_index = 0; connection_index < instrument_pb.voice_connections_size(); ++connection_index)
 			{
 				ladspam_proto1::Connection connection = instrument_pb.voice_connections(connection_index);
 				
@@ -65,7 +65,7 @@ namespace ladspam_jack
 		
 		virtual int process(jack_nframes_t nframes)
 		{
-			unsigned number_of_chunks = nframes/m_control_period;
+			// unsigned number_of_chunks = nframes/m_control_period;
 			
 			unsigned chunk_index = 0;
 			
@@ -191,7 +191,7 @@ namespace ladspam_jack
 		protected:
 			inline float note_frequency(unsigned int note) 
 			{
-				return (2.0 * 440.0 / 32.0) * pow(2, (((jack_default_audio_sample_t)note - 9.0) / 12.0));
+				return (2.0 * 110.0 / 32.0) * pow(2, (((jack_default_audio_sample_t)note - 9.0) / 12.0));
 			}
 
 			inline unsigned oldest_voice(unsigned frame)

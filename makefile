@@ -4,7 +4,7 @@ PREFIX ?= /usr/local
 
 all: ladspa.m.jack.instrument ladspa.m.jack.synth
 
-CXXFLAGS ?= -O3 -march=native -mfpmath=sse -DNDEBUG
+CXXFLAGS ?= -O3 -march=native -mfpmath=sse -DNDEBUG -Wall
 #CXXFLAGS ?= -O0 -g -march=native -mfpmath=sse -DNDEBUG
 CXXFLAGS += `pkg-config ladspa.m-1 ladspamm-1 ladspa.m.proto-1 jack --cflags`
 LDFLAGS += `pkg-config ladspa.m-1 ladspamm-1 ladspa.m.proto-1 jack --libs`
