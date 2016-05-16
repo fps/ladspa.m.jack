@@ -14,7 +14,7 @@ namespace ladspam_jack
 	(
 		const std::string& jack_client_name, 
 		const ladspam_proto1::Synth& synth_pb, 
-		unsigned int control_period,
+		int control_period,
 		bool activate_instance
 	) :
 		m_activate_instance(activate_instance),
@@ -24,6 +24,10 @@ namespace ladspam_jack
 		if (NULL == m_jack_client)
 		{
 			throw std::runtime_error("Failed to open jack client");
+		}
+		
+		if (-1 == control_period) {
+			m_control_period = jack_get_buffer_size(m_jack_client);
 		}
 		
 		if (0 != jack_get_buffer_size(m_jack_client) % m_control_period)

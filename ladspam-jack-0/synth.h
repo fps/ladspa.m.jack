@@ -12,11 +12,14 @@ namespace ladspam_jack
 {
 	struct synth
 	{
+		/**
+		 * control_period -1 means take hosts buffer size
+		 */
 		synth
 		(
 			const std::string &jack_client_name, 
 			const ladspam_proto1::Synth &synth_pb,
-			unsigned control_period,
+			int control_period = -1,
 			bool activate_instance = true
 		);
 		
@@ -82,7 +85,8 @@ namespace ladspam_jack
 			{
 				for (int port_index = 0; port_index < synth_pb.exposed_ports_size(); ++port_index)
 				{
-					ladspam_proto1::Port port = synth_pb.exposed_ports(port_index);
+					ladspam_proto1::ExposedPort exposed_port = synth_pb.exposed_ports(port_index);
+					ladspam_proto1::Port port = exposed_port.port();
 					
 					ladspamm1::plugin_ptr the_plugin = the_synth->get_plugin(port.plugin_index())->the_plugin;
 					
@@ -106,17 +110,12 @@ namespace ladspam_jack
 						m_exposed_plugin_port_buffers.push_back(the_synth->get_buffer(port.plugin_index(), port.port_index()));
 					}
 					
-					std::stringstream port_name_stream;
-					port_name_stream 
-						<< port.plugin_index() 
-						<< "-" << port.port_index();
-
-					std::cout << "registering port: " << port_name_stream.str() << std::endl;
+					std::cout << "registering port: " << exposed_port.name() << std::endl;
 #if 0
 						<< "-" << the_plugin->label()
 						<< "-" << the_plugin->port_name(port.port_index());
 #endif					
-					jack_port_t *jack_port = jack_port_register(m_jack_client, port_name_stream.str().c_str(), JACK_DEFAULT_AUDIO_TYPE, flags, 0);
+					jack_port_t *jack_port = jack_port_register(m_jack_client, exposed_port.name().c_str(), JACK_DEFAULT_AUDIO_TYPE, flags, 0);
 
 					if (jack_port == 0)
 					{

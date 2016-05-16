@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 	
-	ladspam_jack::synth synth("synth", synth_pb, 8);
+	ladspam_jack::synth synth("synth", synth_pb, -1);
 	
 	std::string line;
 	std::cin >> line;
